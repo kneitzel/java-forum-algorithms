@@ -15,6 +15,7 @@
         <!-- Dependency versions -->
         <junit.version>5.8.2</junit.version>
         <lombok.version>1.18.20</lombok.version>
+        <oshi.version>6.2.1</oshi.version>
         <pmd.version>6.38.0</pmd.version>
 
         <!-- Plugin dependencies -->
@@ -31,6 +32,12 @@
     </properties>
 
     <dependencies>
+
+        <dependency>
+            <groupId>com.github.oshi</groupId>
+            <artifactId>oshi-core</artifactId>
+            <version>${oshi.version}</version>
+        </dependency>
 
         <dependency>
             <groupId>org.projectlombok</groupId>
