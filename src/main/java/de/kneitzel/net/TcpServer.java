@@ -51,6 +51,13 @@ public class TcpServer {
 
     /**
      * Handles a client message. This is done inside the clients thread!
+     * <p>
+     *     This method can "block" because the sendMessage call could block.
+     * </p>
+     * <p>
+     *     The list of clients is copied first to keep the locked state
+     *     short so other threads are not blocked while messages are sent.
+     * </p>
      * @param tcpServerClient TcpServerClient that received the message.
      * @param message Text that was read.
      */
@@ -59,7 +66,7 @@ public class TcpServer {
         synchronized (clients) {
             clientsCopy.addAll(clients);
         }
-        clients.stream()
+        clientsCopy.stream()
                 .filter(c -> c != tcpServerClient)
                 .forEach(c -> c.sendMessage(message));
     }

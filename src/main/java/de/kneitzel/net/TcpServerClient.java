@@ -70,6 +70,9 @@ public class TcpServerClient {
 
     /**
      * Sends a message to the connected server
+     * <p>
+     *     This call can block / take some time.
+     * </p>
      * @param message Message to send.
      */
     public void sendMessage(final String message) {
