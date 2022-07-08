@@ -1,5 +1,7 @@
 package de.kneitzel.net;
 
+import de.kneitzel.util.SafeClose;
+
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -9,7 +11,7 @@ import java.util.List;
 /**
  * Simple TcpServer
  */
-public class TcpServer {
+public class TcpServer implements AutoCloseable {
 
     /**
      * Thread that is listenin for new incomming connections.
@@ -22,11 +24,23 @@ public class TcpServer {
      */
     private int port;
 
+    /**
+     * The server socket used to accept incomming connections.
+     */
+    private ServerSocket socket;
+
+    /**
+     * Creates a new instance of TcpServer
+     * @param port Port to use.
+     */
     public TcpServer(final int port) {
         this.port = port;
     }
 
-    public void listen() throws IOException {
+    /**
+     * Starts the listening on the server.
+     */
+    public void start() throws IOException {
         if (listeningThread != null && listeningThread.isAlive())
             throw new IllegalStateException("TcpServer is already listening!");
 
@@ -35,7 +49,8 @@ public class TcpServer {
     }
 
     private void listenForNewConnections() {
-        try (ServerSocket socket = new ServerSocket(port)) {
+        try {
+            socket = new ServerSocket(port);
             while (!socket.isClosed()) {
                 Socket clientSocket = socket.accept();
                 TcpServerClient client = new TcpServerClient(clientSocket, this);
@@ -54,19 +69,11 @@ public class TcpServer {
      * <p>
      *     This method can "block" because the sendMessage call could block.
      * </p>
-     * <p>
-     *     The list of clients is copied first to keep the locked state
-     *     short so other threads are not blocked while messages are sent.
-     * </p>
      * @param tcpServerClient TcpServerClient that received the message.
      * @param message Text that was read.
      */
     public void handleClientMessage(final TcpServerClient tcpServerClient, final String message) {
-        List<TcpServerClient> clientsCopy = new ArrayList<>();
-        synchronized (clients) {
-            clientsCopy.addAll(clients);
-        }
-        clientsCopy.stream()
+        getClientListCopy().stream()
                 .filter(c -> c != tcpServerClient)
                 .forEach(c -> c.sendMessage(message));
     }
@@ -79,5 +86,28 @@ public class TcpServer {
         synchronized (clients) {
             clients.remove(tcpServerClient);
         }
+    }
+
+    /**
+     * Creates a copy of the list of all TcpServerClients.
+     * @return A copy of the List of all TcpServerClients.
+     */
+    private List<TcpServerClient> getClientListCopy() {
+        synchronized (clients) {
+            return clients.stream().toList();
+        }
+    }
+
+    /**
+     * Signals the TcpServer that the socket should be closed and the thread handling the socket should be stopped.
+     * <p>
+     *     Also closes all client connections!
+     * </p>
+     * @throws Exception
+     */
+    @Override
+    public void close() throws Exception {
+        SafeClose.close(socket);
+        getClientListCopy().forEach(TcpServerClient::close);
     }
 }
