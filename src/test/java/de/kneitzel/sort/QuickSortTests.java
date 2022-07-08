@@ -1,7 +1,8 @@
 package de.kneitzel.sort;
 
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 
 public class QuickSortTests {
 
@@ -14,6 +15,6 @@ public class QuickSortTests {
         Integer[] expectedArray = { 1, 2, 3, 5, 9, 18, 19};
 
         QuickSort.sort(arrayToSort);
-        Assert.assertArrayEquals(expectedArray, arrayToSort);
+        assertArrayEquals(expectedArray, arrayToSort);
     }
 }
