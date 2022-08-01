@@ -8,12 +8,7 @@ import java.net.Socket;
 /**
  * Client of the TcpServerClient.
  */
-public class TcpServerClient {
-
-    /**
-     * Flag that indicates if the client thread should still run.
-     */
-    private volatile boolean shouldRun;
+public class TcpServerClient implements AutoCloseable {
 
     /**
      * Socket for communication.
@@ -44,7 +39,6 @@ public class TcpServerClient {
         this.socket = socket;
         this.server = server;
 
-        shouldRun = true;
         writer = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
         listeningThread = new Thread(this::listenForMessages);
         listeningThread.start();
@@ -55,7 +49,7 @@ public class TcpServerClient {
      */
     private void listenForMessages() {
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream()))){
-            while (shouldRun) {
+            while (true) {
                 server.handleClientMessage(this, reader.readLine());
             }
         } catch (IOException ex) {
@@ -63,13 +57,14 @@ public class TcpServerClient {
             ex.printStackTrace(System.err);
         }
 
-        SafeClose.close(writer);
-        SafeClose.close(socket);
-        server.clientClosed(this);
+        close();
     }
 
     /**
      * Sends a message to the connected server
+     * <p>
+     *     This call can block / take some time.
+     * </p>
      * @param message Message to send.
      */
     public void sendMessage(final String message) {
@@ -80,7 +75,17 @@ public class TcpServerClient {
         } catch (IOException ex) {
             System.out.println("Exception writing to Server: " + ex.getMessage());
             ex.printStackTrace(System.err);
-            shouldRun = false;
+            close();
         }
+    }
+
+    /**
+     * Signals, that the thread should end and all resources should be closed.
+     */
+    @Override
+    public void close() {
+        SafeClose.close(writer);
+        SafeClose.close(socket);
+        server.clientClosed(this);
     }
 }
