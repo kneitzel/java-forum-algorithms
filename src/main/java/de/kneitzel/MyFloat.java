@@ -8,6 +8,7 @@ package de.kneitzel;
  * Thread: https://www.java-forum.org/thema/bin-to-float-convertieren-funktioniert-nicht.199086/
  * First version of user: planet_safe (https://www.java-forum.org/mitglied/planet_safe.73117/)
  *
+ * Standard: IEEE 754: https://de.wikipedia.org/wiki/IEEE_754
  */
 public class MyFloat extends Number {
     private final int sign;
