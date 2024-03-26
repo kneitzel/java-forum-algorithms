@@ -3,26 +3,18 @@ package de.kneitzel.so;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
+import java.awt.*;
 import java.io.*;
 import java.util.ArrayList;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class Base  implements Serializable {
-    public String name;
-}
-
-class Derived extends Base {
-    public String comment;
-}
 public class BinarySerializationFailure {
 
     @Test
     public void testBinarySerialization() {
-        ArrayList<Base> objects = new ArrayList<>();
-        Base base = new Base();
-        base.name = "Name";
-        objects.add(base);
+        ArrayList<String> objects = new ArrayList<>();
+        objects.add("Some String");
 
         try ( FileOutputStream fileOut = new FileOutputStream("account.ser");
                 ObjectOutputStream out = new ObjectOutputStream(fileOut)) {
@@ -31,11 +23,11 @@ public class BinarySerializationFailure {
             fail("Exception!", ex);
         }
 
-        ArrayList<Derived> loadedList = null;
+        ArrayList<Point> loadedList = null;
         try (
                 FileInputStream fileIn = new FileInputStream("account.ser");
                 ObjectInputStream in = new ObjectInputStream(fileIn)) {
-            loadedList = (ArrayList<Derived>) in.readObject();
+            loadedList = (ArrayList<Point>) in.readObject();
         } catch (Exception ex) {
             fail("Exception!", ex);
         }
@@ -44,9 +36,9 @@ public class BinarySerializationFailure {
         assertEquals(1, loadedList.size());
 
         // So whenever we try to access, we get an exception:
-        ArrayList<Derived> finalLoadedList = loadedList;
+        ArrayList<Point> finalLoadedList = loadedList;
         assertThrows(ClassCastException.class, () -> {
-            Derived derived = finalLoadedList.get(0);
+            Point derived = finalLoadedList.get(0);
         });
     }
 }
